@@ -36,6 +36,9 @@ class App:
     def save_timer(self, duration, unit):
         self.config.add_timer(duration=duration, unit=unit)
 
+    def clear_timers(self):
+        self.config.delete_timers()
+
     def sleep(self):
         print('Merry Christmas!')
 

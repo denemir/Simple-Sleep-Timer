@@ -41,6 +41,10 @@ class Config:
         }
         self.save_config(self.config)
 
+    def delete_timers(self):
+        self.config["timers"] = {}
+        self.save_config(self.config)
+
     def set_default_option(self, duration, unit):
         timer_title = duration, unit
         self.config["default_option"][timer_title] = {

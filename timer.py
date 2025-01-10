@@ -49,7 +49,6 @@ class Timer:
         else:
             self._pause_event.set()
         self.paused = not self.paused
-        print(self.paused)
 
     def cancel_timer(self):
         self._stop_event.set()

@@ -2,6 +2,7 @@ import tkinter
 import tkinter.messagebox
 import webbrowser
 from tkinter import ttk
+from PIL import Image, ImageTk
 import sv_ttk
 
 
@@ -44,6 +45,7 @@ class GUI:
         self.root.resizable(False, False)
         self.center_window(self.root)
         self.set_theme()
+
 
         # add menu options & buttons
         self.menu_bar = tkinter.Menu(self.root)
@@ -149,6 +151,11 @@ class GUI:
         add_timer_gui = AddTimerGUI(parent=self.root, callback=self.save_timer)
         add_timer_gui.initialize_gui()
 
+    def clear_timers(self):
+        self.prog.clear_timers()
+        self.options = self.prog.get_all_options()
+        self.timer_dropdown["values"] = self.options
+
     def save_timer(self, duration, unit):
         self.prog.save_timer(duration=duration, unit=unit)
         self.options = self.prog.get_all_options()
@@ -244,6 +251,15 @@ class GUI:
         url = "https://github.com/denemir/Simple-Sleep-Timer/issues/new"
         webbrowser.open_new_tab(url)
 
+    def resource(self, relative_path):
+        import sys
+        import os
+        base_path = getattr(
+            sys,
+            '_MEIPASS',
+            os.path.dirname(os.path.abspath(__file__)))
+        return os.path.join(base_path, relative_path)
+
 
 class AddTimerGUI:
     def __init__(self, parent, callback):
@@ -271,9 +287,10 @@ class AddTimerGUI:
         # input
         self.duration_frame = ttk.Frame(top_frame)
         self.duration_frame.pack(padx=3, pady=3, side="left")
+        validation = (self.window.register(self.validate_input), "%P") # input validation
 
         ttk.Label(self.duration_frame, text="Duration:").pack(anchor="w")
-        self.duration_input = ttk.Entry(self.duration_frame, width=30)
+        self.duration_input = ttk.Entry(self.duration_frame, width=30, validate="key", validatecommand=validation)
         self.duration_input.pack()
 
         # units
@@ -311,8 +328,8 @@ class AddTimerGUI:
 
     def save_timer(self):
         try:
-            duration = self.duration_input.get()
-            unit = self.unit.get()
+            duration = self.duration_input.get().strip()
+            unit = self.unit.get().strip()
             if float(self.duration_input.get()) <= 0:
                 raise ValueError("Duration must be positive")
 
@@ -325,3 +342,6 @@ class AddTimerGUI:
                 "Invalid Input",
                 "Please enter a valid positive number for duration."
             )
+
+    def validate_input(self, P):
+        return P.isdigit() or P == ''
