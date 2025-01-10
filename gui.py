@@ -1,5 +1,6 @@
 import tkinter
 import tkinter.messagebox
+import webbrowser
 from tkinter import ttk
 import sv_ttk
 
@@ -42,15 +43,25 @@ class GUI:
         self.root.minsize(250, 75)
         self.root.resizable(False, False)
         self.center_window(self.root)
-        sv_ttk.set_theme(self.theme)
+        self.set_theme()
 
         # add menu options & buttons
         self.menu_bar = tkinter.Menu(self.root)
+
+        # file menu
         file_menu = tkinter.Menu(self.menu_bar, tearoff=0)
-        file_menu.add_cascade(label="Preferences")
+        file_menu.add_cascade(label="Preferences", command=self.feature_not_implemented_warning)
+        file_menu.add_cascade(label="Toggle Theme", command=self.toggle_theme)
         file_menu.add_cascade(label="Version: " + self.version, state="disabled")
+        file_menu.add_separator()
+        file_menu.add_cascade(label="Check me out!", command=self.github)
         self.menu_bar.add_cascade(label="File", menu=file_menu)
-        self.menu_bar.add_cascade(label="Help")
+
+
+        # help menu
+        help_menu = tkinter.Menu(self.menu_bar, tearoff=0)
+        help_menu.add_cascade(label="Report a Bug", command=self.report_bug)
+        self.menu_bar.add_cascade(label="Help", menu=help_menu)
 
         # top frame
         ttk.Label(self.top_frame, text="Timers:").pack(anchor="w")
@@ -94,6 +105,24 @@ class GUI:
         # center the window
         window.geometry(f"+{x}+{y}")
 
+    def set_theme(self):
+        # ensure theme is valid
+        try:
+            if self.theme != "light" and self.theme != "dark":
+                self.theme = "dark"
+                sv_ttk.set_theme(self.theme)
+                self.prog.update_theme(theme=self.theme)
+                raise ValueError("Theme must be either \"Light\" or \"Dark\".")
+
+            # if valid theme, set to custom theme
+            sv_ttk.set_theme(self.theme)
+        except ValueError as e:
+            tkinter.messagebox.showerror(
+                "Invalid Theme",
+                "Selected Theme is invalid, resetting theme to \"Dark\""
+            )
+
+
     def start_timer(self, event=None):
         self.prog.start_timer(selection=self.selected_timer.get())
         if not self.running:
@@ -112,8 +141,8 @@ class GUI:
         self.prog.cancel_timer()
 
     def pause_timer(self):
-        self.paused = not self.paused
         self.prog.pause_timer()
+        self.paused = not self.paused
         self.toggle_start_stop_buttons()
 
     def add_timer(self):
@@ -143,6 +172,17 @@ class GUI:
             self.stop_button["state"] = "disabled"
             self.start_button["state"] = "enabled"
             self.pause_button["state"] = "disabled"
+
+    def toggle_theme(self):
+        if self.theme == "light":
+            self.theme = "dark"
+        elif self.theme == "dark":
+            self.theme = "light"
+        else:
+            self.theme = "dark"
+
+        self.prog.update_theme(theme=self.theme)
+        self.set_theme()
 
     def update_timer_display(self):
         time_remaining = self.prog.get_remaining_time()
@@ -189,6 +229,20 @@ class GUI:
 
     def show_config_menu(self, event=None):
         self.root.config(menu=self.menu_bar)
+
+    def feature_not_implemented_warning(self):
+        tkinter.messagebox.showerror(
+            "Still working on it!",
+            "This feature isn't available yet. Check back soon!"
+        )
+
+    def github(self):
+        url = "https://github.com/denemir/"
+        webbrowser.open_new_tab(url)
+
+    def report_bug(self):
+        url = "https://github.com/denemir/Simple-Sleep-Timer/issues/new"
+        webbrowser.open_new_tab(url)
 
 
 class AddTimerGUI:

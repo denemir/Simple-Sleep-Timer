@@ -1,4 +1,6 @@
 import os
+import platform
+import subprocess
 import re
 
 from gui import GUI
@@ -36,7 +38,22 @@ class App:
 
     def sleep(self):
         print('Merry Christmas!')
-        os.system("rundll32.exe powrprof.dll,SetSuspendState 0,1,0")
+
+        # determine OS
+        system = platform.system()
+        try:
+            if system == "Windows":
+                print()
+                # os.system("rundll32.exe powrprof.dll,SetSuspendState 0,1,0")
+            elif system == "Darwin":
+                subprocess.run(["pmset", "sleepnow"])
+            elif system == "Linux":
+                subprocess.run(["systemctl", "suspend"])
+        except Exception as e:
+            print(f"An error occurred while putting the system to sleep: {e}")
+
+        # reset buttons
+        self.gui.toggle_start_stop_buttons()
 
     def parse_file_for_default_option(self):
         self.default_option = self.config.get_default_option()
@@ -53,6 +70,9 @@ class App:
 
     def update_timer_dropdown(self):
         self.gui.update_timer_display()
+
+    def update_theme(self, theme=None):
+        self.config.set_theme(theme=theme)
 
     def run(self):
         self.gui.initialize_gui()

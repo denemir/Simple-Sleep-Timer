@@ -10,7 +10,7 @@ class Config:
             "default_option": None,
             "theme": "dark"
         }
-        self.version = '1.0.0'
+        self.version = '1.0.1'
         self.config = self.load_config()
 
     def load_config(self):
@@ -57,3 +57,7 @@ class Config:
 
     def get_theme(self):
         return self.config["theme"]
+
+    def set_theme(self, theme=None):
+        self.config["theme"] = theme
+        self.save_config(self.config)

@@ -1,4 +1,5 @@
 import threading
+from threading import Event
 import time
 import re
 import tkinter
@@ -15,9 +16,16 @@ class Timer:
         self.callback = callback
         self.update_call = update_call
 
+        # thread
+        self._pause_event = Event()
+        self._stop_event = Event()
+
     def start_timer(self, selection=None, on_complete=None):
         self.callback = on_complete
         self.duration = self.parse_duration(selection=selection)
+        self.paused = False
+        self._stop_event.clear()
+        self._pause_event.clear()
 
         # check to ensure time was properly parsed
         if self.duration is not None:
@@ -36,15 +44,21 @@ class Timer:
         self.duration = duration
 
     def pause_timer(self):
+        if self.paused:
+            self._pause_event.clear()
+        else:
+            self._pause_event.set()
         self.paused = not self.paused
+        print(self.paused)
 
     def cancel_timer(self):
+        self._stop_event.set()
+        self._pause_event.clear()
         self.paused = False
         self.time_remaining = 0
         self.running = False
-
-    def save_timer(self):
-        self.duration = 0
+        if self.thread:
+            self.thread.join(timeout=0.001)
 
     def get_remaining_time(self):
         hours = self.time_remaining // 3600
@@ -84,12 +98,19 @@ class Timer:
 
     def _decrement(self):
         while self.running and self.time_remaining > 0:
-            if not self.paused:
-                time.sleep(1)
+            # check for pause
+            if self._pause_event.is_set():
+                continue
+
+            if self._stop_event.is_set() or self._pause_event.is_set():
+                break
+            time.sleep(1)
+
+            if not self._stop_event.is_set() and not self._pause_event.is_set():
                 self.time_remaining -= 1
                 self.update_call()
 
-            if self.time_remaining <= 0:
+            if self.time_remaining <= 0 and self.running:
                 if self.callback:
                     self.running = False
                     self.callback()
