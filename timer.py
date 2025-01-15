@@ -69,6 +69,9 @@ class Timer:
         return self.time_remaining
 
     def parse_duration(self, selection=None):
+        # remove symbols
+        selection = re.sub(r'[^\w\s]', '', selection)
+
         # check format
         try:
             match = re.match(r"(\d+)\s*(min|hrs?|sec)", selection.lower())

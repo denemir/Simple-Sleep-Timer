@@ -15,12 +15,16 @@ class Config:
 
     def load_config(self):
         try:
+            config = None
             if os.path.exists(self.config_path):
                 with open(self.config_path, 'r') as f:
-                    return json.load(f)
+                    config = json.load(f)
             else:
                 self.save_config(self.default_config)
-                return self.default_config
+                config = self.default_config
+
+            return config
+
         except (json.JSONDecodeError, IOError) as e:
             print(f"Error loading config: {e}")
             return self.default_config
@@ -46,11 +50,8 @@ class Config:
         self.save_config(self.config)
 
     def set_default_option(self, duration, unit):
-        timer_title = duration, unit
-        self.config["default_option"][timer_title] = {
-            "duration:": duration,
-            "unit:": unit
-        }
+        timer_title = f'{duration} ' + f'{unit}'
+        self.config["default_option"] = timer_title
         self.save_config(self.config)
 
     def get_timers(self):

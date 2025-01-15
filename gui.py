@@ -2,8 +2,9 @@ import tkinter
 import tkinter.messagebox
 import webbrowser
 from tkinter import ttk
-from PIL import Image, ImageTk
+from tktooltip import ToolTip
 import sv_ttk
+import re
 
 
 class GUI:
@@ -21,6 +22,9 @@ class GUI:
         self.start_button = None
         self.stop_button = None
         self.pause_button = None
+        self.edit_button = None
+        self.favorite_button = None
+        self.remove_button = None
         self.add_timer_button = None
         self.top_frame = None
         self.menu_bar = None
@@ -35,6 +39,14 @@ class GUI:
         self.unit_dropdown = None
         self.save_button = None
 
+        # edit options
+        self.editing = False
+        self.star_symbol = '★'
+        if self.default_option is not None:
+            self.default_option = self.default_option + f" {self.star_symbol}"
+        else:
+            self.default_option = None
+
     def initialize_gui(self):
         self.top_frame = ttk.Frame(self.root)
         self.top_frame.pack(padx=5, pady=5, side="top", fill="x")
@@ -45,7 +57,6 @@ class GUI:
         self.root.resizable(False, False)
         self.center_window(self.root)
         self.set_theme()
-
 
         # add menu options & buttons
         self.menu_bar = tkinter.Menu(self.root)
@@ -59,7 +70,6 @@ class GUI:
         file_menu.add_cascade(label="Check me out!", command=self.github)
         self.menu_bar.add_cascade(label="File", menu=file_menu)
 
-
         # help menu
         help_menu = tkinter.Menu(self.menu_bar, tearoff=0)
         help_menu.add_cascade(label="Report a Bug", command=self.report_bug)
@@ -70,12 +80,11 @@ class GUI:
         self.selected_timer = tkinter.StringVar(value="90 min" if self.default_option is None else self.default_option)
         self.timer_dropdown = ttk.Combobox(self.top_frame, textvariable=self.selected_timer,
                                            values=self.options,
-                                           state="readonly", width=20)
+                                           state="readonly", width=18)
         self.timer_dropdown.bind("<<ComboboxSelected>>", self.on_timer_select)
         self.timer_dropdown.pack(side="left")
 
-        self.add_timer_button = ttk.Button(self.top_frame, text='+', command=self.add_timer, state='enabled')
-        self.add_timer_button.pack(padx=3, side="left")
+        self.initialize_edit_buttons()
 
         # bottom frame
         self.start_button = ttk.Button(self.root, text='Start Timer', command=self.start_timer, state='enabled')
@@ -124,16 +133,17 @@ class GUI:
                 "Selected Theme is invalid, resetting theme to \"Dark\""
             )
 
-
     def start_timer(self, event=None):
         self.prog.start_timer(selection=self.selected_timer.get())
         if not self.running:
-            duration, unit = self.selected_timer.get().split()
+            cleaned_timer = re.sub(r'[^\w\s]', '', self.selected_timer.get())
+            duration, unit = cleaned_timer.split()
 
             if int(duration) > 0:
                 self.running = True
                 self.reinitialize_top_frame()
                 self.toggle_start_stop_buttons()
+                self.editing = False
 
     def cancel_timer(self):
         self.running = False
@@ -151,10 +161,25 @@ class GUI:
         add_timer_gui = AddTimerGUI(parent=self.root, callback=self.save_timer)
         add_timer_gui.initialize_gui()
 
+    def edit_timer(self):
+        self.editing = not self.editing
+        self.initialize_edit_buttons()
+
     def clear_timers(self):
         self.prog.clear_timers()
         self.options = self.prog.get_all_options()
         self.timer_dropdown["values"] = self.options
+
+    def set_default_timer(self):
+        if self.default_option:
+            self.default_option = self.default_option.replace(f" {self.star_symbol}", "")
+
+        # add a star to the default option to better highlight it
+        self.default_option = self.selected_timer.get()
+        self.default_option = self.default_option + f" {self.star_symbol}"
+
+        timer = self.parse_timer()
+        self.prog.set_default_timer(duration=timer["duration"], unit=timer["unit"])
 
     def save_timer(self, duration, unit):
         self.prog.save_timer(duration=duration, unit=unit)
@@ -179,6 +204,7 @@ class GUI:
             self.stop_button["state"] = "disabled"
             self.start_button["state"] = "enabled"
             self.pause_button["state"] = "disabled"
+            self.pause_button["text"] = "Pause Timer"
 
     def toggle_theme(self):
         if self.theme == "light":
@@ -195,14 +221,53 @@ class GUI:
         time_remaining = self.prog.get_remaining_time()
         hours, minutes, seconds = map(int, time_remaining.split(':'))
 
-        self.timer_display["state"] = "normal"
-        self.timer_display.delete(0, "end")
-        self.timer_display.insert(0, f"{time_remaining}")
-        self.timer_display["state"] = "readonly"
+        if self.timer_display is not None:
+            self.timer_display["state"] = "normal"
+            self.timer_display.delete(0, "end")
+            self.timer_display.insert(0, f"{time_remaining}")
+            self.timer_display["state"] = "readonly"
 
         if (hours + minutes + seconds) <= 0:
             self.running = False
             self.reinitialize_top_frame()
+
+    def refresh_timers(self):
+        self.options = self.prog.get_all_options()
+        self.selected_timer = tkinter.StringVar(value=self.default_option)
+        self.timer_dropdown["values"] = self.options
+        self.timer_dropdown["textvariable"] = self.selected_timer
+
+    def initialize_edit_buttons(self):
+        # clear existing buttons
+        if self.add_timer_button:
+            self.add_timer_button.pack_forget()
+        self.clear_edit_buttons()
+
+        # if editing, initialize editing buttons
+        if not self.editing:
+            self.edit_button = ttk.Button(self.top_frame, text="🖉",
+                                          command=self.edit_timer)
+            ToolTip(self.edit_button, msg="Edit Timer", delay=.75)
+            self.edit_button.pack(padx=3, side="left")
+
+            self.add_timer_button = ttk.Button(self.top_frame, text='+', command=self.add_timer, state='enabled')
+            ToolTip(self.add_timer_button, msg="Add Timer", delay=.75)
+            self.add_timer_button.pack(side="left")
+        elif self.editing:
+            self.edit_button = ttk.Button(self.top_frame, text="✍", style="Small.TButton",
+                                          command=self.edit_timer)
+            ToolTip(self.edit_button, msg="Hide Edit Timer", delay=.75)
+            self.edit_button.pack(padx=(3, 0), side="left")
+
+            self.remove_button = ttk.Button(self.top_frame, text="🗑", style="Small.TButton",
+                                            command=None)
+            ToolTip(self.remove_button, msg="Remove Timer", delay=.75)
+            self.remove_button.pack(padx=3, side="left")
+
+            self.favorite_button = ttk.Button(self.top_frame, text="★", style="Small.TButton",
+                                              command=self.set_default_timer)
+            ToolTip(self.favorite_button, msg="Set Timer as Default", delay=.75)
+            self.favorite_button.pack(side="left")
 
     def reinitialize_top_frame(self):
         # clear top frame
@@ -210,12 +275,13 @@ class GUI:
             self.timer_dropdown.pack_forget()
         if self.timer_display is not None:
             self.timer_display.pack_forget()
+        self.clear_edit_buttons()
         self.add_timer_button.pack_forget()
 
         # reinitialize top frame
         if self.running:
             # add timer display and re-add add button
-            self.timer_display = ttk.Entry(self.top_frame, state="disabled", width=20)
+            self.timer_display = ttk.Entry(self.top_frame, state="disabled", width=29)
             self.timer_display.pack(side="left")
             self.add_timer_button = ttk.Button(self.top_frame, text='+', command=self.add_timer, state='enabled')
             self.add_timer_button.pack(padx=3, side="left")
@@ -228,11 +294,37 @@ class GUI:
                 value=self.selected_timer.get())
             self.timer_dropdown = ttk.Combobox(self.top_frame, textvariable=self.selected_timer,
                                                values=self.options,
-                                               state="readonly", width=20)
+                                               state="readonly", width=24)
             self.timer_dropdown.bind("<<ComboboxSelected>>", self.on_timer_select)
             self.timer_dropdown.pack(side="left")
-            self.add_timer_button = ttk.Button(self.top_frame, text='+', command=self.add_timer, state='enabled')
-            self.add_timer_button.pack(padx=3, side="left")
+            self.initialize_edit_buttons()
+
+    def clear_edit_buttons(self):
+        if self.edit_button:
+            self.edit_button.pack_forget()
+        if self.remove_button:
+            self.remove_button.pack_forget()
+        if self.favorite_button:
+            self.favorite_button.pack_forget()
+
+    def parse_timer(self):
+        # check format
+        try:
+            match = re.match(r"(\d+)\s*(min|hrs?|sec)", self.selected_timer.get().lower())
+            if not match:
+                raise ValueError(f"Invalid duration format: {self.selected_timer.get()}")
+        except ValueError as e:
+            tkinter.messagebox.showerror(
+                "Invalid Input",
+                "Please enter a valid time in this format: { Duration } { Units }"
+            )
+            return None
+
+        # parse values
+        duration, unit = match.groups()
+        duration = int(duration)
+
+        return {"duration": duration, "unit": unit}
 
     def show_config_menu(self, event=None):
         self.root.config(menu=self.menu_bar)
@@ -287,7 +379,7 @@ class AddTimerGUI:
         # input
         self.duration_frame = ttk.Frame(top_frame)
         self.duration_frame.pack(padx=3, pady=3, side="left")
-        validation = (self.window.register(self.validate_input), "%P") # input validation
+        validation = (self.window.register(self.validate_input), "%P")  # input validation
 
         ttk.Label(self.duration_frame, text="Duration:").pack(anchor="w")
         self.duration_input = ttk.Entry(self.duration_frame, width=30, validate="key", validatecommand=validation)
@@ -345,3 +437,9 @@ class AddTimerGUI:
 
     def validate_input(self, P):
         return P.isdigit() or P == ''
+
+
+class PreferencesGUI:
+    def __init__(self):
+        self.default_option = None
+        self.monitor_off = False
