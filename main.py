@@ -47,8 +47,8 @@ class App:
         system = platform.system()
         try:
             if system == "Windows":
-                ctypes.windll.user32.SendMessageW(65535, 274, 61808, 2)
-                # os.system("rundll32.exe powrprof.dll,SetSuspendState 0,1,0")
+                # ctypes.windll.user32.SendMessageW(65535, 274, 61808, 2) monitor off
+                os.system("rundll32.exe powrprof.dll,SetSuspendState 0,1,0")
             elif system == "Darwin":
                 subprocess.run(["pmset", "sleepnow"])
             elif system == "Linux":
@@ -82,7 +82,7 @@ class App:
 
     def set_default_option(self, duration=None, unit=None):
         # check if option with star exists in list of options
-        if (self.default_option + " ★") in self.all_options:
+        if (self.default_option is not None and self.default_option + " ★") in self.all_options:
             index = self.all_options.index(self.default_option + " ★")
 
             # update all options to ensure star is no longer on old default option

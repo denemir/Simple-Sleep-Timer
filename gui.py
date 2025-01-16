@@ -176,7 +176,8 @@ class GUI:
 
         # add a star to the default option to better highlight it
         self.default_option = self.selected_timer.get()
-        self.default_option = self.default_option + f" {self.star_symbol}"
+        if not self.default_option.endswith(f" {self.star_symbol}"):
+            self.default_option = self.default_option + f" {self.star_symbol}"
 
         timer = self.parse_timer()
         self.prog.set_default_timer(duration=timer["duration"], unit=timer["unit"])
