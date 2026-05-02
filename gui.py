@@ -2,7 +2,7 @@ import tkinter
 import tkinter.messagebox
 import webbrowser
 from tkinter import ttk
-from tktooltip import ToolTip
+from TkToolTip import ToolTip
 import sv_ttk
 import re
 
