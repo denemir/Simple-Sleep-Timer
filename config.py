@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 
 
@@ -7,10 +8,17 @@ class Config:
         self.config_path = config_path
         self.default_config = {
             "timers": {},
-            "default_option": None,
-            "theme": "dark"
+            "scheduled_times": {},
+            "preferences": {
+                "default_option": None,
+                "theme": "dark",
+                "notifications": False,
+                "minimize_on_close": False,
+                "run_on_startup": False,
+                "scheduled": False,
+            },
         }
-        self.version = '1.0.1'
+        self.version = '1.0.2'
         self.config = self.load_config()
 
     def load_config(self):
@@ -51,18 +59,37 @@ class Config:
 
     def set_default_option(self, duration, unit):
         timer_title = f'{duration} ' + f'{unit}'
-        self.config["default_option"] = timer_title
+        self.config["preferences"]["default_option"] = timer_title
         self.save_config(self.config)
 
     def get_timers(self):
         return self.config["timers"]
 
     def get_default_option(self):
-        return self.config["default_option"]
+        return self.config["preferences"]["default_option"]
 
     def get_theme(self):
-        return self.config["theme"]
+        return self.config["preferences"]["theme"]
 
     def set_theme(self, theme=None):
-        self.config["theme"] = theme
+        self.config["preferences"]["theme"] = theme
+        self.save_config(self.config)
+
+    def set_run_on_startup(self, option=None):
+        self.config["preferences"]["run_on_startup"] = option
+        self.save_config(self.config)
+
+    def set_minimize_on_close(self, option=None):
+        self.config["preferences"]["minimize_on_close"] = option
+        self.save_config(self.config)
+
+    def set_schedule(self, option=None):
+        self.config["preferences"]["scheduled"] = option
+        self.save_config(self.config)
+
+    def get_schedule(self):
+        return self.config["preferences"]["scheduled"]
+
+    def add_schedule(self, schedules=None):
+        self.config["scheduled_times"] = schedules
         self.save_config(self.config)

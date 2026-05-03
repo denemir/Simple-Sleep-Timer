@@ -6,11 +6,16 @@ from TkToolTip import ToolTip
 import sv_ttk
 import re
 
+from gui_common import GuiCommon
+from preferences import PreferencesGui
+from scheduler import SchedulerGui
+
 
 class GUI:
-    def __init__(self, prog=None, default_option=None, theme=None, version=None):
+    def __init__(self, prog=None, config=None, default_option=None, theme=None, version=None):
         self.root = tkinter.Tk()
         self.prog = prog
+        self.config = config
         self.options = self.prog.get_all_options()
         self.default_option = default_option
         self.theme = theme
@@ -39,6 +44,11 @@ class GUI:
         self.unit_dropdown = None
         self.save_button = None
 
+        # schedule modal
+        self.schedule_menu = None
+        self.scheduled = self.config.get_schedule()
+        self.schedule_text = "Disable" if self.scheduled else "Enable"
+
         # edit options
         self.editing = False
         self.star_symbol = '★'
@@ -55,7 +65,7 @@ class GUI:
         self.root.title('Sleep Timer')
         self.root.minsize(250, 75)
         self.root.resizable(False, False)
-        self.center_window(self.root)
+        GuiCommon.center_window(self.root)
         self.set_theme()
 
         # add menu options & buttons
@@ -69,6 +79,13 @@ class GUI:
         file_menu.add_separator()
         file_menu.add_cascade(label="Check me out!", command=self.github)
         self.menu_bar.add_cascade(label="File", menu=file_menu)
+
+        # schedule menu
+        schedule_menu = tkinter.Menu(self.menu_bar, tearoff=0)
+        schedule_menu.add_command(label=f"{self.schedule_text} Schedule", command=self.toggle_schedule)
+        schedule_menu.add_command(label="Set Schedule", command=self.show_scheduler)
+        self.menu_bar.add_cascade(label="Schedule", menu=schedule_menu)
+        self.schedule_menu = schedule_menu
 
         # help menu
         help_menu = tkinter.Menu(self.menu_bar, tearoff=0)
@@ -99,22 +116,6 @@ class GUI:
         self.root.bind('<Return>', self.start_timer)
         self.root.bind('<Alt_L>', self.show_config_menu)
         self.root.mainloop()
-
-    def center_window(self, window):
-        window.update_idletasks()
-
-        # get the screen width and height
-        screen_width = window.winfo_screenwidth()
-        screen_height = window.winfo_screenheight()
-
-        # get the current width and height of the window
-        window_width = window.winfo_width()
-        window_height = window.winfo_height()
-        x = (screen_width - window_width) // 2
-        y = (screen_height - window_height) // 2
-
-        # center the window
-        window.geometry(f"+{x}+{y}")
 
     def set_theme(self):
         # ensure theme is valid
@@ -218,6 +219,17 @@ class GUI:
         self.prog.update_theme(theme=self.theme)
         self.set_theme()
 
+    def toggle_schedule(self):
+        self.scheduled = not self.scheduled
+        old_schedule_text = self.schedule_text
+        self.schedule_text = "Disable" if self.scheduled else "Enable"
+        self.schedule_menu.entryconfig(f"{old_schedule_text} Schedule", label=f"{self.schedule_text} Schedule")
+        self.config.set_schedule(self.schedule_text != "Enable")
+
+    def show_scheduler(self):
+        scheduler_gui = SchedulerGui(parent=self.root, callback=None) # replace callback with save schedule funct
+        scheduler_gui.initialize_gui()
+
     def update_timer_display(self):
         time_remaining = self.prog.get_remaining_time()
         hours, minutes, seconds = map(int, time_remaining.split(':'))
@@ -248,27 +260,27 @@ class GUI:
         if not self.editing:
             self.edit_button = ttk.Button(self.top_frame, text="🖉",
                                           command=self.edit_timer)
-            ToolTip(self.edit_button, msg="Edit Timer", delay=.75)
             self.edit_button.pack(padx=3, side="left")
+            ToolTip(self.edit_button, text="Edit Timer", delay=.75)
 
             self.add_timer_button = ttk.Button(self.top_frame, text='+', command=self.add_timer, state='enabled')
-            ToolTip(self.add_timer_button, msg="Add Timer", delay=.75)
             self.add_timer_button.pack(side="left")
+            ToolTip(self.add_timer_button, text="Add Timer", delay=.75)
         elif self.editing:
             self.edit_button = ttk.Button(self.top_frame, text="✍", style="Small.TButton",
                                           command=self.edit_timer)
-            ToolTip(self.edit_button, msg="Hide Edit Timer", delay=.75)
             self.edit_button.pack(padx=(3, 0), side="left")
+            ToolTip(self.edit_button, text="Hide Edit Timer", delay=.75)
 
             self.remove_button = ttk.Button(self.top_frame, text="🗑", style="Small.TButton",
                                             command=None)
-            ToolTip(self.remove_button, msg="Remove Timer", delay=.75)
             self.remove_button.pack(padx=3, side="left")
+            ToolTip(self.remove_button, text="Remove Timer", delay=.75)
 
             self.favorite_button = ttk.Button(self.top_frame, text="★", style="Small.TButton",
                                               command=self.set_default_timer)
-            ToolTip(self.favorite_button, msg="Set Timer as Default", delay=.75)
             self.favorite_button.pack(side="left")
+            ToolTip(self.favorite_button, text="Set Timer as Default", delay=.75)
 
     def reinitialize_top_frame(self):
         # clear top frame
@@ -335,6 +347,11 @@ class GUI:
             "Still working on it!",
             "This feature isn't available yet. Check back soon!"
         )
+
+    def show_preferences_menu(self):
+        preferences_gui = PreferencesGui(parent=self.root, callback=self.save_preferences)
+        # replace callback with self.config.save_preferences
+        preferences_gui.initialize_gui()
 
     def github(self):
         url = "https://github.com/denemir/"
@@ -440,7 +457,7 @@ class AddTimerGUI:
         return P.isdigit() or P == ''
 
 
-class PreferencesGUI:
-    def __init__(self):
-        self.default_option = None
-        self.monitor_off = False
+# class PreferencesGUI:
+#     def __init__(self):
+#         self.default_option = None
+#         self.monitor_off = False

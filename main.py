@@ -22,7 +22,7 @@ class App:
         self.config = Config()
         self.parse_file_for_default_option()
         self.version = self.config.version
-        self.gui = GUI(prog=self, theme=self.config.get_theme(), default_option=self.default_option, version=self.version)
+        self.gui = GUI(prog=self, config=self.config, theme=self.config.get_theme(), default_option=self.default_option, version=self.version)
 
     def start_timer(self, selection=None):
         self.timer.start_timer(selection=selection, on_complete=self.sleep)
@@ -41,8 +41,6 @@ class App:
         self.config.delete_timers()
 
     def sleep(self):
-        print('Merry Christmas!')
-
         # determine OS
         system = platform.system()
         try:
