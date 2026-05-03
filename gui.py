@@ -46,7 +46,7 @@ class GUI:
 
         # schedule modal
         self.schedule_menu = None
-        self.scheduled = self.config.get_schedule()
+        self.scheduled = self.config.get_scheduled()
         self.schedule_text = "Disable" if self.scheduled else "Enable"
 
         # edit options
@@ -224,7 +224,7 @@ class GUI:
         old_schedule_text = self.schedule_text
         self.schedule_text = "Disable" if self.scheduled else "Enable"
         self.schedule_menu.entryconfig(f"{old_schedule_text} Schedule", label=f"{self.schedule_text} Schedule")
-        self.config.set_schedule(self.schedule_text != "Enable")
+        self.config.set_scheduled(self.schedule_text != "Enable")
 
     def show_scheduler(self):
         scheduler_gui = SchedulerGui(parent=self.root, callback=None) # replace callback with save schedule funct

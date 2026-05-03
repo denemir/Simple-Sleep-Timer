@@ -1,3 +1,4 @@
+import logging
 import os
 import platform
 import subprocess
@@ -5,6 +6,7 @@ import ctypes
 
 from gui import GUI
 from config import Config
+from minimize import Minimize
 from timer import Timer
 
 
@@ -23,6 +25,8 @@ class App:
         self.parse_file_for_default_option()
         self.version = self.config.version
         self.gui = GUI(prog=self, config=self.config, theme=self.config.get_theme(), default_option=self.default_option, version=self.version)
+
+        self.gui.root.protocol("WM_DELETE_WINDOW", self.on_close)
 
     def start_timer(self, selection=None):
         self.timer.start_timer(selection=selection, on_complete=self.sleep)
@@ -101,6 +105,9 @@ class App:
     def run(self):
         self.gui.initialize_gui()
 
+    def on_close(self):
+        minimize_on_close = "tray" if self.config.get_minimize_on_close() else "quit"
+        Minimize.on_close(self.gui, minimize_on_close)
 
 if __name__ == "__main__":
     prog = App()

@@ -83,11 +83,14 @@ class Config:
         self.config["preferences"]["minimize_on_close"] = option
         self.save_config(self.config)
 
-    def set_schedule(self, option=None):
+    def get_minimize_on_close(self):
+        return self.config["preferences"]["minimize_on_close"]
+
+    def set_scheduled(self, option=None):
         self.config["preferences"]["scheduled"] = option
         self.save_config(self.config)
 
-    def get_schedule(self):
+    def get_scheduled(self):
         return self.config["preferences"]["scheduled"]
 
     def add_schedule(self, schedules=None):

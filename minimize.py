@@ -10,15 +10,15 @@ class Minimize:
     @staticmethod
     def build_tray_icon(app):
         menu = pystray.Menu(
-            pystray.MenuItem("Show", lambda: app.restore_from_tray()),
-            pystray.MenuItem("Quit", lambda: app.quit())
+            pystray.MenuItem("Show", lambda icon, item: Minimize.restore_from_tray(app)),
+            pystray.MenuItem("Quit", lambda icon, item: Minimize.quit_from_tray(app))
         )
-        icon = pystray.Icon("SimpleSleepTimer", app.create_tray_icon_image(), "Simple Sleep Timer", menu)
+        icon = pystray.Icon("SimpleSleepTimer", Minimize.create_tray_icon_image(), "Simple Sleep Timer", menu)
         app.tray_icon = icon
         icon.run()
 
     @staticmethod
-    def minimze_to_tray(app):
+    def minimize_to_tray(app):
         app.root.withdraw()
         thread = threading.Thread(target=Minimize.build_tray_icon, args=(app,), daemon=True)
         thread.start()
@@ -29,3 +29,16 @@ class Minimize:
             app.tray_icon.stop()
         app.root.deiconify()
         app.root.lift()
+
+    @staticmethod
+    def quit_from_tray(app):
+        if hasattr(app, 'tray_icon'):
+            app.tray_icon.stop()
+        app.root.destroy()
+
+    @staticmethod
+    def on_close(app, behavior=None):
+        if behavior == "tray":
+            Minimize.minimize_to_tray(app)
+        elif behavior == "quit":
+            app.root.destroy()
