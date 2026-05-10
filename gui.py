@@ -8,7 +8,7 @@ import re
 
 from gui_common import GuiCommon
 from preferences import PreferencesGui
-from scheduler import SchedulerGui
+from scheduler_gui import SchedulerGui
 
 
 class GUI:
@@ -225,15 +225,17 @@ class GUI:
         self.schedule_text = "Disable" if self.scheduled else "Enable"
         self.schedule_menu.entryconfig(f"{old_schedule_text} Schedule", label=f"{self.schedule_text} Schedule")
         self.config.set_scheduled(self.schedule_text != "Enable")
+        self.prog.scheduler.restart()
 
     def show_scheduler(self):
-        scheduler_gui = SchedulerGui(parent=self.root, config=self.config, callback=self.on_schedule_saved()) # replace callback with save schedule funct
+        scheduler_gui = SchedulerGui(parent=self.root, config=self.config, callback=self.on_schedule_saved) # replace callback with save schedule funct
         scheduler_gui.initialize_gui()
 
     def on_schedule_saved(self):
         self.scheduled = self.config.get_scheduled()
-        self.schedule_text = "Enable" if self.scheduled else "Disable"
+        self.schedule_text = "Disable" if self.scheduled else "Enable"
         self.schedule_menu.entryconfig(0, label=f"{self.schedule_text} Schedule")
+        self.prog.scheduler.restart()
 
     def update_timer_display(self):
         time_remaining = self.prog.get_remaining_time()

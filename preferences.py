@@ -17,6 +17,8 @@ class PreferencesGui:
         # setup window
         self.window.title('Preferences')
         self.window.minsize(300, 100)
+        self.window.resizable(False, False)
+        self.window.transient(parent)
         self.window.grab_set()
 
         # tab values
