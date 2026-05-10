@@ -35,7 +35,7 @@ class App:
         self.gui.root.protocol("WM_DELETE_WINDOW", self.on_close)
 
         Startup.set_startup(enabled=self.config.get_run_on_startup(),
-                            background=self.config.set_startup_in_background())
+                            background=self.config.get_startup_in_background())
 
         self.scheduler = Scheduler(config=self.config, sleep_callback=self.sleep)
         self.scheduler.start()

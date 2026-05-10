@@ -23,6 +23,8 @@ class Scheduler:
 
     def stop(self):
         self._stop_event.set()
+        if self._thread:
+            self._thread.join()
 
     def restart(self):
         self.stop()
@@ -38,7 +40,6 @@ class Scheduler:
                     schedule = self.config.get_schedule()
                     now = datetime.datetime.now()
                     current_day = now.strftime("%A")
-                    current_time = now.strftime("%H:%M")
                     today = now.date()
 
                     days = schedule.get("days", [])
@@ -54,11 +55,11 @@ class Scheduler:
                                 warning_sent_today = today
                                 Notifications.notify_schedule_warning()
 
-                        if now.strftime("%H:%M") == sleep_at and fired_today != today:
+                        if -30 <= delta <= 30 and fired_today != today:
                             fired_today = today
                             self.sleep_callback()
 
             except Exception as e:
                 print(f"Scheduler error: {e}")
 
-            time.sleep(10)
+            time.sleep(5)
