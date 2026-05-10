@@ -109,6 +109,19 @@ class Config:
         self.config["scheduled_times"] = schedules
         self.save_config(self.config)
 
+    def set_schedule(self, schedule: dict):
+        self.config["scheduled_times"] = {
+            "days": schedule["days"],
+            "sleep_at": schedule["sleep_at"]
+        }
+        self.save_config(self.config)
+
+    def get_schedule(self) -> dict:
+        return {
+            "days": self.config["scheduled_times"].get("days", []),
+            "sleep_at": self.config["scheduled_times"].get("sleep_at", "22:00")
+        }
+
     def set_enable_notifications(self, option=None):
         self.config["preferences"]["notifications"] = option
         self.save_config(self.config)

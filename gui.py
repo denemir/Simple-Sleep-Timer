@@ -227,7 +227,7 @@ class GUI:
         self.config.set_scheduled(self.schedule_text != "Enable")
 
     def show_scheduler(self):
-        scheduler_gui = SchedulerGui(parent=self.root, callback=None) # replace callback with save schedule funct
+        scheduler_gui = SchedulerGui(parent=self.root, config=self.config, callback=None) # replace callback with save schedule funct
         scheduler_gui.initialize_gui()
 
     def update_timer_display(self):
