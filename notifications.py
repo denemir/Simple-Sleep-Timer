@@ -13,7 +13,7 @@ class Notifications:
         return path if os.path.exists(path) else ""
 
     @staticmethod
-    def _send(title: str, message: str, sound=audio.Default, duration="Short"):
+    def _send(title: str, message: str, sound=audio.Default, duration="short"):
         toast = Notification(
             app_id=APP_ID,
             title=title,
@@ -30,7 +30,7 @@ class Notifications:
             title=f"{APP_NAME} is running",
             message="The app is running in the background.",
             sound=audio.Default,
-            duration="Short"
+            duration="short"
         )
 
     @staticmethod
@@ -39,7 +39,7 @@ class Notifications:
             title="Sleep in 5 minutes",
             message="Your scheduled sleep time is coming up in 5 minutes.",
             sound=audio.Reminder,
-            duration="Long"
+            duration="short"
         )
 
     @staticmethod
@@ -52,5 +52,5 @@ class Notifications:
             title="Sleep Timer Warning",
             message=f"Your system will sleep in {time_str}.",
             sound=audio.Reminder,
-            duration="long"
+            duration="short"
         )
