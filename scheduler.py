@@ -44,6 +44,7 @@ class SchedulerGui:
                             foreground="red", font=("Arial", 8))
         warning.pack()
 
+        # render fields
         self.render_enable_field_and_sleep_at()
         self.content_frame = ttk.Frame(self.window)
         self.content_frame.pack(fill="x", padx=10, pady=10)
@@ -107,6 +108,15 @@ class SchedulerGui:
                 pass
 
     def on_save(self):
-        # implement save logic here
+        schedule = self.get_schedule()
+        if self.config:
+            self.config.set_schedule(schedule)
+            self.config.set_scheduled(self.scheduler_enabled.get())
 
         self.window.destroy()
+
+    def get_schedule(self):
+        return {
+            "days": [day for day, var in self.day_vars.items() if var.get()],
+            "sleep_at": f"{self.sleep_hour.get()}:{self.sleep_minute.get()}"
+        }
