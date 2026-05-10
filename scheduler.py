@@ -2,6 +2,9 @@ import threading
 import datetime
 import time
 
+from notifications import Notifications
+
+
 class Scheduler:
     def __init__(self, config, sleep_callback):
         self.config = config
@@ -27,6 +30,7 @@ class Scheduler:
 
     def _run(self):
         fired_today = None
+        warning_sent_today = None # tracker for notification warning
 
         while not self._stop_event.is_set():
             try:
@@ -40,17 +44,21 @@ class Scheduler:
                     days = schedule.get("days", [])
                     sleep_at = schedule.get("sleep_at", "")
 
-                    should_fire = (
-                        current_day in days and
-                        current_time == sleep_at and
-                        fired_today != today
-                    )
+                    if current_day in days and sleep_at:
+                        sleep_hour, sleep_minute = map(int, sleep_at.split(":"))
+                        sleep_time = now.replace(hour=sleep_hour, minute=sleep_minute, second=0, microsecond=0)
+                        delta = (sleep_time - now).total_seconds()
 
-                    if should_fire:
-                        fired_today = today
-                        self.sleep_callback()
+                        if 270 <= delta <= 330 and warning_sent_today != today:
+                            if self.config.get_enable_notifications():
+                                warning_sent_today = today
+                                Notifications.notify_schedule_warning()
+
+                        if now.strftime("%H:%M") == sleep_at and fired_today != today:
+                            fired_today = today
+                            self.sleep_callback()
 
             except Exception as e:
                 print(f"Scheduler error: {e}")
 
-            time.sleep(30)
+            time.sleep(10)

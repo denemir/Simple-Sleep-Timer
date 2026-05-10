@@ -6,6 +6,7 @@ import sys
 from gui import GUI
 from config import Config
 from minimize import Minimize
+from notifications import Notifications
 from scheduler import Scheduler
 from startup import Startup
 from timer import Timer
@@ -20,14 +21,16 @@ class App:
         self.custom_options = None  # custom options only
         self.all_options = None  # all options collectively
 
-        self.timer = Timer(callback=self.sleep, update_call=self.update_timer_dropdown)
         self.config = Config()
+        self.timer = Timer(callback=self.sleep, config=self.config, update_call=self.update_timer_dropdown)
         self.parse_file_for_default_option()
         self.version = self.config.version
         self.gui = GUI(prog=self, config=self.config, theme=self.config.get_theme(), default_option=self.default_option, version=self.version)
 
         if "--background" in sys.argv:
             Minimize.minimize_to_tray(self.gui)
+            if self.config.get_enable_notifications():
+                Notifications.notify_running_in_background()
 
         self.gui.root.protocol("WM_DELETE_WINDOW", self.on_close)
 

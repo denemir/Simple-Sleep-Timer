@@ -5,11 +5,15 @@ import re
 import tkinter
 from tkinter import messagebox
 
+from notifications import Notifications
+
 
 class Timer:
-    def __init__(self, callback=None, update_call=None):
+    def __init__(self, callback=None, config=None, update_call=None):
+        self.config = config
         self.duration = 0
         self.time_remaining = 0
+        self.total_time = 0
         self.paused = False
         self.running = False
         self.thread = None
@@ -19,6 +23,7 @@ class Timer:
         # thread
         self._pause_event = Event()
         self._stop_event = Event()
+        self._timer_warning_sent = False
 
     def start_timer(self, selection=None, on_complete=None):
         self.callback = on_complete
@@ -29,6 +34,7 @@ class Timer:
 
         # check to ensure time was properly parsed
         if self.duration is not None:
+            self.total_time = self.duration
             self.time_remaining = self.duration
             self.running = True
 
@@ -55,6 +61,8 @@ class Timer:
         self._pause_event.clear()
         self.paused = False
         self.time_remaining = 0
+        self.total_time = 0
+        self._timer_warning_sent = False
         self.running = False
         if self.thread:
             self.thread.join(timeout=0.001)
@@ -102,6 +110,7 @@ class Timer:
         while self.running and self.time_remaining > 0:
             # check for pause
             if self._pause_event.is_set():
+                self._pause_event.wait()
                 continue
 
             if self._stop_event.is_set() or self._pause_event.is_set():
@@ -111,9 +120,21 @@ class Timer:
             if not self._stop_event.is_set() and not self._pause_event.is_set():
                 self.time_remaining -= 1
                 self.update_call()
+                self.check_timer_warning()
 
             if self.time_remaining <= 0 and self.running:
                 if self.callback:
                     self.running = False
                     self.callback()
                 break
+
+    def check_timer_warning(self):
+        if not self.config.get_enable_notifications():
+            return
+
+        if self.total_time <= 0 or self._timer_warning_sent:
+            return
+
+        if self.time_remaining <= (self.total_time * 0.05):
+            self._timer_warning_sent = True
+            Notifications.notify_custom_timer_warning(self.time_remaining)
