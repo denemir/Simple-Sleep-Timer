@@ -15,10 +15,12 @@ class Config:
                 "notifications": False,
                 "minimize_on_close": False,
                 "run_on_startup": False,
+                "startup_in_background": False,
                 "scheduled": False,
+                "online_updater": True
             },
         }
-        self.version = '1.0.2'
+        self.version = '1.1.0'
         self.config = self.load_config()
 
     def load_config(self):
@@ -79,6 +81,16 @@ class Config:
         self.config["preferences"]["run_on_startup"] = option
         self.save_config(self.config)
 
+    def get_run_on_startup(self):
+        return self.config["preferences"]["run_on_startup"]
+
+    def set_startup_in_background(self, option=None):
+        self.config["preferences"]["startup_in_background"] = option
+        self.save_config(self.config)
+
+    def get_startup_in_background(self):
+        return self.config["preferences"]["startup_in_background"]
+
     def set_minimize_on_close(self, option=None):
         self.config["preferences"]["minimize_on_close"] = option
         self.save_config(self.config)
@@ -95,4 +107,25 @@ class Config:
 
     def add_schedule(self, schedules=None):
         self.config["scheduled_times"] = schedules
+        self.save_config(self.config)
+
+    def set_enable_notifications(self, option=None):
+        self.config["preferences"]["notifications"] = option
+        self.save_config(self.config)
+
+    def get_enable_notifications(self):
+        return self.config["preferences"]["notifications"]
+
+    def set_enable_online_updater(self, option=None):
+        self.config["preferences"]["online_updater"] = option
+        self.save_config(self.config)
+
+    def get_enable_online_updater(self):
+        return self.config["preferences"]["online_updater"]
+
+    def get_preference(self, preference=None):
+        return self.config["preferences"][f"{preference}"]
+
+    def set_preference(self, preference=None, option=None):
+        self.config["preferences"][f"{preference}"] = option
         self.save_config(self.config)

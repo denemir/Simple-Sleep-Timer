@@ -73,7 +73,7 @@ class GUI:
 
         # file menu
         file_menu = tkinter.Menu(self.menu_bar, tearoff=0)
-        file_menu.add_cascade(label="Preferences", command=self.feature_not_implemented_warning)
+        file_menu.add_cascade(label="Preferences", command=self.show_preferences_menu)
         file_menu.add_cascade(label="Toggle Theme", command=self.toggle_theme)
         file_menu.add_cascade(label="Version: " + self.version, state="disabled")
         file_menu.add_separator()
@@ -349,7 +349,7 @@ class GUI:
         )
 
     def show_preferences_menu(self):
-        preferences_gui = PreferencesGui(parent=self.root, callback=self.save_preferences)
+        preferences_gui = PreferencesGui(parent=self.root, config=self.config)
         # replace callback with self.config.save_preferences
         preferences_gui.initialize_gui()
 
