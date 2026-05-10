@@ -10,7 +10,6 @@ from scheduler import Scheduler
 from startup import Startup
 from timer import Timer
 
-
 class App:
     def __init__(self):
         self.duration = 0
@@ -35,7 +34,7 @@ class App:
         Startup.set_startup(enabled=self.config.get_run_on_startup(),
                             background=self.config.set_startup_in_background())
 
-        self.scheduler = Scheduler(config=self.config, sleep_callback=self.sleep())
+        self.scheduler = Scheduler(config=self.config, sleep_callback=self.sleep)
         self.scheduler.start()
 
     def start_timer(self, selection=None):
