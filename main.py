@@ -1,12 +1,12 @@
-import logging
 import os
 import platform
 import subprocess
-import ctypes
+import sys
 
 from gui import GUI
 from config import Config
 from minimize import Minimize
+from startup import Startup
 from timer import Timer
 
 
@@ -26,7 +26,13 @@ class App:
         self.version = self.config.version
         self.gui = GUI(prog=self, config=self.config, theme=self.config.get_theme(), default_option=self.default_option, version=self.version)
 
+        if "--background" in sys.argv:
+            Minimize.minimize_to_tray(self.gui)
+
         self.gui.root.protocol("WM_DELETE_WINDOW", self.on_close)
+
+        Startup.set_startup(enabled=self.config.get_run_on_startup(),
+                            background=self.config.set_startup_in_background())
 
     def start_timer(self, selection=None):
         self.timer.start_timer(selection=selection, on_complete=self.sleep)
