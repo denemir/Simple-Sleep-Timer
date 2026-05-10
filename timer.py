@@ -135,6 +135,6 @@ class Timer:
         if self.total_time <= 0 or self._timer_warning_sent:
             return
 
-        if self.time_remaining <= (self.total_time * 0.05):
+        if self.time_remaining <= (self.total_time * 0.1):
             self._timer_warning_sent = True
             Notifications.notify_custom_timer_warning(self.time_remaining)
