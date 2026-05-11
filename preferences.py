@@ -8,7 +8,7 @@ from startup import Startup
 
 
 class PreferencesGui:
-    def __init__(self, parent, callback=None, config=None):
+    def __init__(self, parent=None, callback=None, config=None):
         self.window = tkinter.Toplevel(parent)
         self.window.focus_force()
         self.callback = callback

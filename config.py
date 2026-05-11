@@ -1,6 +1,12 @@
 import json
-import logging
 import os
+import shutil
+import sys
+import zipfile
+
+import requests
+
+from updater_gui import UpdaterGui
 
 
 class Config:
@@ -142,3 +148,73 @@ class Config:
     def set_preference(self, preference=None, option=None):
         self.config["preferences"][f"{preference}"] = option
         self.save_config(self.config)
+
+    def check_for_update(self):
+        repo_link = "https://github.com/denemir/Simple-Sleep-Timer/releases/latest"
+        response = requests.get(repo_link)
+
+        if response.status_code == 200:
+            latest_release = response.json()
+            latest_version = latest_release["tag_name"]
+
+            if latest_version != self.version:
+                UpdaterGui.initialize_window(config=self.config, latest_version=latest_version)
+
+    def update_application(self, download_url):
+        response = requests.get(download_url)
+        if response.status_code == 200:
+            with open("update.zip", "wb") as file:
+                file.write(response.content)
+
+            with zipfile.ZipFile("update.zip", "r") as zip_ref:
+                zip_ref.extractall("update")
+
+            existing_settings = self.load_config()
+
+            current_path = os.path.dirname(os.path.abspath(__file__))
+            update_path = os.path.join(current_path, "update")
+
+            for filename in os.listdir(current_path):
+                if filename != "settings.json":
+                    file_path = os.path.join(current_path, filename)
+                    if os.path.isfile(file_path):
+                        os.remove(file_path)
+                    elif os.path.isdir(file_path):
+                        shutil.rmtree(file_path)
+
+            for filename in os.listdir(update_path):
+                src_path = os.path.join(update_path, filename)
+                dst_path = os.path.join(current_path, filename)
+                if os.path.isfile(src_path):
+                    shutil.copy(src_path, dst_path)
+                elif os.path.isdir(src_path):
+                    shutil.copytree(src_path, dst_path)
+
+            os.remove("update.zip")
+            shutil.rmtree("update")
+
+            updated_settings = self.load_config()
+            merged_settings = {**updated_settings, **existing_settings}
+            self.save_config(merged_settings)
+
+            # reset the application
+            python = sys.executable
+            os.execl(python, python, *sys.argv)
+        else:
+            print("Failed to download the update.")
+
+    def merge_missing_config_attributes(self):
+        self.config = self.merge_dicts(self.default_config, self.config)
+        self.save_config(self.config)
+
+    def merge_dicts(self, default_dict, user_dict):
+        merged_dict = {}
+        for key in default_dict:
+            if key in user_dict:
+                if isinstance(default_dict[key], dict) and isinstance(user_dict[key], dict):
+                    merged_dict[key] = self.merge_dicts(default_dict[key], user_dict[key])
+                else:
+                    merged_dict[key] = user_dict[key]
+            else:
+                merged_dict[key] = default_dict[key]
+        return merged_dict

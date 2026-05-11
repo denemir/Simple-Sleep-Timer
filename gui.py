@@ -357,7 +357,6 @@ class GUI:
 
     def show_preferences_menu(self):
         preferences_gui = PreferencesGui(parent=self.root, config=self.config)
-        # replace callback with self.config.save_preferences
         preferences_gui.initialize_gui()
 
     def github(self):
@@ -399,7 +398,7 @@ class AddTimerGUI:
     def initialize_gui(self):
         top_frame = ttk.Frame(self.window)
         top_frame.pack(padx=3, pady=3, side="top", fill="x")
-        self.center_window(self.window)
+        GuiCommon.center_window(self.window)
 
         # input
         self.duration_frame = ttk.Frame(top_frame)
@@ -425,21 +424,6 @@ class AddTimerGUI:
         save_button = ttk.Button(self.window, text='Save', command=self.save_timer, state='enabled')
         save_button.pack(side="bottom", pady=3)
 
-    def center_window(self, window):
-        # get the screen width and height
-        screen_width = window.winfo_screenwidth()
-        screen_height = window.winfo_screenheight()
-
-        # get the current width and height of the window
-        window.update_idletasks()
-        window_width = window.winfo_width()
-        window_height = window.winfo_height()
-        x = (screen_width - window_width) // 2
-        y = (screen_height - window_height) // 2
-
-        # center the window
-        window.geometry(f"+{x}+{y}")
-
     def on_dropdown_select(self, event):
         self.duration_units.selection_clear()
 
@@ -462,9 +446,3 @@ class AddTimerGUI:
 
     def validate_input(self, P):
         return P.isdigit() or P == ''
-
-
-# class PreferencesGUI:
-#     def __init__(self):
-#         self.default_option = None
-#         self.monitor_off = False

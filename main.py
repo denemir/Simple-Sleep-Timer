@@ -10,6 +10,8 @@ from notifications import Notifications
 from scheduler import Scheduler
 from startup import Startup
 from timer import Timer
+from updater_gui import UpdaterGui
+
 
 class App:
     def __init__(self):
@@ -22,11 +24,16 @@ class App:
         self.all_options = None  # all options collectively
 
         self.config = Config()
+        self.config.merge_missing_config_attributes()
         self.timer = Timer(callback=self.sleep, config=self.config, update_call=self.update_timer_dropdown)
         self.parse_file_for_default_option()
         self.version = self.config.version
         self.gui = GUI(prog=self, config=self.config, theme=self.config.get_theme(), default_option=self.default_option, version=self.version)
 
+        if self.config.get_enable_online_updater():
+            self.config.check_for_update()
+
+        UpdaterGui.initialize_window(config=self.config, latest_version="1.0.0")
         if "--background" in sys.argv:
             Minimize.minimize_to_tray(self.gui)
             if self.config.get_enable_notifications():
