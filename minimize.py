@@ -2,10 +2,14 @@ import pystray
 from PIL import Image, ImageDraw
 import threading
 
+from gui_common import GuiCommon
+
+
 class Minimize:
     @staticmethod
     def create_tray_icon_image():
-        return Image.open("icon.png").resize((32, 32))
+        icon_path = GuiCommon.resource_path("icon.png")
+        return Image.open(icon_path).resize((32, 32))
 
     @staticmethod
     def build_tray_icon(app):
