@@ -10,7 +10,6 @@ from notifications import Notifications
 from scheduler import Scheduler
 from startup import Startup
 from timer import Timer
-from updater_gui import UpdaterGui
 
 
 class App:
@@ -31,9 +30,8 @@ class App:
         self.gui = GUI(prog=self, config=self.config, theme=self.config.get_theme(), default_option=self.default_option, version=self.version)
 
         if self.config.get_enable_online_updater():
-            self.config.check_for_update()
+            self.config.check_for_update(window=self.gui.root)
 
-        UpdaterGui.initialize_window(config=self.config, latest_version="1.0.0")
         if "--background" in sys.argv:
             Minimize.minimize_to_tray(self.gui)
             if self.config.get_enable_notifications():

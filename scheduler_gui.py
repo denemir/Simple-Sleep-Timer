@@ -8,7 +8,7 @@ HOURS = [f"{h:02d}" for h in range(0,24)]
 MINUTES = [f"{m:02d}" for m in range(0, 60, 5)]
 
 class SchedulerGui:
-    def __init__(self, parent, config, callback):
+    def __init__(self, parent=None, config=None, callback=None):
         self.window = tkinter.Toplevel(parent)
         self.window.focus_force()
         self.callback = callback
@@ -20,6 +20,8 @@ class SchedulerGui:
         self.window.resizable(True, True)
         self.window.transient(parent)  # window modal
         self.window.grab_set()
+        icon_path = GuiCommon.resource_path('icon.ico')
+        self.window.iconbitmap(icon_path)
         self.content_frame = None
 
         # sleep vars

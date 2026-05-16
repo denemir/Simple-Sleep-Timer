@@ -1,3 +1,7 @@
+import os
+import sys
+
+
 class GuiCommon:
     @staticmethod
     def center_window(window):
@@ -15,3 +19,12 @@ class GuiCommon:
 
         # center the window
         window.geometry(f"+{x}+{y}")
+
+    @staticmethod
+    def resource_path(relative_path):
+        try:
+            base_path = sys._MEIPASS
+        except Exception:
+            base_path = os.path.abspath(".")
+
+        return os.path.join(base_path, relative_path)

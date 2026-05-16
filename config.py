@@ -7,6 +7,7 @@ import zipfile
 import requests
 
 from updater_gui import UpdaterGui
+from packaging import version
 
 
 class Config:
@@ -23,7 +24,8 @@ class Config:
                 "run_on_startup": False,
                 "startup_in_background": False,
                 "scheduled": False,
-                "online_updater": True
+                "online_updater": True,
+                "skip_version": None
             },
         }
         self.version = '1.1.0'
@@ -142,6 +144,7 @@ class Config:
     def get_enable_online_updater(self):
         return self.config["preferences"]["online_updater"]
 
+    # generic functions to be used later down the line for abstraction
     def get_preference(self, preference=None):
         return self.config["preferences"][f"{preference}"]
 
@@ -149,16 +152,24 @@ class Config:
         self.config["preferences"][f"{preference}"] = option
         self.save_config(self.config)
 
-    def check_for_update(self):
-        repo_link = "https://github.com/denemir/Simple-Sleep-Timer/releases/latest"
+    def get_skip_version(self):
+        return self.config["preferences"]["skip_version"]
+
+    def set_skip_version(self, skip_version=None):
+        self.config["preferences"]["skip_version"] = skip_version
+        self.save_config(self.config)
+
+    def check_for_update(self, window=None):
+        repo_link = "https://api.github.com/repos/denemir/Simple-Sleep-Timer/releases/latest"
         response = requests.get(repo_link)
 
         if response.status_code == 200:
             latest_release = response.json()
             latest_version = latest_release["tag_name"]
 
-            if latest_version != self.version:
-                UpdaterGui.initialize_window(config=self.config, latest_version=latest_version)
+            if version.parse(latest_version) > version.parse(self.version) and latest_version != self.get_skip_version():
+                updater_gui = UpdaterGui(config=self, parent=window, latest_version=latest_version)
+                updater_gui.initialize_window()
 
     def update_application(self, download_url):
         response = requests.get(download_url)

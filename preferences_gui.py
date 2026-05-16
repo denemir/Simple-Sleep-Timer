@@ -19,6 +19,8 @@ class PreferencesGui:
         self.window.minsize(300, 100)
         self.window.resizable(False, False)
         self.window.transient(parent)
+        icon_path = GuiCommon.resource_path('icon.ico')
+        self.window.iconbitmap(icon_path)
         self.window.grab_set()
 
         # tab values

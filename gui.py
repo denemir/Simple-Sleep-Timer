@@ -7,7 +7,7 @@ import sv_ttk
 import re
 
 from gui_common import GuiCommon
-from preferences import PreferencesGui
+from preferences_gui import PreferencesGui
 from scheduler_gui import SchedulerGui
 
 
@@ -66,6 +66,8 @@ class GUI:
         self.root.minsize(250, 75)
         self.root.resizable(False, False)
         GuiCommon.center_window(self.root)
+        icon_path = GuiCommon.resource_path('icon.ico')
+        self.root.iconbitmap(icon_path)
         self.set_theme()
 
         # add menu options & buttons
@@ -367,15 +369,6 @@ class GUI:
         url = "https://github.com/denemir/Simple-Sleep-Timer/issues/new"
         webbrowser.open_new_tab(url)
 
-    def resource(self, relative_path):
-        import sys
-        import os
-        base_path = getattr(
-            sys,
-            '_MEIPASS',
-            os.path.dirname(os.path.abspath(__file__)))
-        return os.path.join(base_path, relative_path)
-
 
 class AddTimerGUI:
     def __init__(self, parent, callback):
@@ -387,6 +380,8 @@ class AddTimerGUI:
         self.window.minsize(200, 50)
         self.window.resizable(False, False)
         self.window.transient(parent)  # window modal
+        icon_path = GuiCommon.resource_path('icon.ico')
+        self.window.iconbitmap(icon_path)
         self.window.grab_set()
 
         # inputs
